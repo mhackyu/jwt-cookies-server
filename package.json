@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "server": "nodemon -r dotenv/config ./src"
+    "server": "nodemon -r dotenv/config ./src",
+    "start": "node ./src/index.js"
   },
   "author": "mhackyu <mark.christian.paderes@gmail.com>",
   "license": "MIT",
