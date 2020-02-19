@@ -17,7 +17,7 @@ module.exports.generateToken = (res, data) => {
 
   return res.cookie('access_token', token, {
     expires: new Date(Date.now() + 86400000),
-    secure: false, // set to true if your using https
+    secure: process.env.SECURE, // set to true if your using https
     httpOnly: true,
   });
 };
