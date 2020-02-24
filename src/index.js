@@ -32,7 +32,7 @@ app.post('/login', (req, res) => {
     });
   }
 
-  jwt.generateToken(res, { id: user.id, email: user.email });
+  jwt.generateToken(res, { uid: user.id, email: user.email });
   res.send({ msg: 'Successfully logged in.' });
 });
 
