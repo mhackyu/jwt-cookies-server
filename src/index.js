@@ -1,53 +1,81 @@
-const express = require('express');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const jwt = require('./jwt');
-const redisClient = require('./redis');
-const auth = require('./login');
+const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const jwt = require("./jwt");
+const redisClient = require("./redis");
+const auth = require("./login");
 const app = express();
-const PORT = process.env.PORT || '3000';
+const PORT = process.env.PORT || "3000";
+
+// redisClient.setAsync('name', 'mark')
+//   .then((result) => {
+//     console.log('YOW', result);
+//   }).catch((err) => {
+//     console.log(err);
+//   });
+
+// redisClient.getAsync('name')
+//   .then((result) => {
+//     console.log('YOW', result);
+//   }).catch((err) => {
+//     console.log(err);
+//   });
+
+// redisClient.delAsync('name')
+//   .then((result) => {
+//     console.log('YOW', result);
+//   }).catch((err) => {
+//     console.log(err);
+//   });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: process.env.CLIENT_URL,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true
+  })
+);
 
 app.use(cookieParser());
 
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.send({
-    msg: 'Welcome!'
+    msg: "Welcome!"
   });
 });
 
-app.post('/login', (req, res) => {
+app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const user = auth.login(email, password);
 
   if (!user) {
     return res.status(401).json({
-      msg: 'Unauthorized error'
+      msg: "Unauthorized error"
     });
   }
 
-  jwt.generateToken(res, { id: user.id, email: user.email });
-  res.send({ msg: 'Successfully logged in.' });
+  jwt.generateToken(res, { id: user.id });
+  res.send({ msg: "Successfully logged in." });
 });
 
-app.post('/logout', jwt.verify, (req, res) => {
-  redisClient.del(req.user.id, (err) => {
-    if (err) {
-      return res.status(500).send({ msg: 'Error while deleting session in redis.' });
-    }
-    console.log('DEL redis ', req.user.id);
-    delete req.user;
-    res.send({ msg: 'Successfully logged out.' });
-  });
+app.post("/logout", jwt.verify, (req, res) => {
+  redisClient
+    .delAsync("name")
+    .then(() => {
+      delete req.user;
+      res.clearCookie("access_token");
+      res.clearCookie("refresh_token");
+      res.send({ msg: "Successfully logged out." });
+    })
+    .catch((err) => {
+      return res
+        .status(500)
+        .send({ msg: "Error while deleting session in redis.", err });
+    });
 });
 
-app.get('/verify', jwt.verify, (req, res) => {
+app.get("/verify", jwt.verify, (req, res) => {
   res.send({ user: req.user });
 });
 
